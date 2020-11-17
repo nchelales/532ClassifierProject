@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="BranchesTreeState">
     <expand>
       <path>
@@ -18,7 +21,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b64c6272-a58d-4853-b2d9-8dd8ea81ec14" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,21 +50,22 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
+  </component>
+  <component name="PyConsoleOptionsProvider">
+    <option name="myUseExistingConsole" value="true" />
   </component>
   <component name="RunManager">
-    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="mainScript" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="532ClassifierProject" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/mainScript.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -72,7 +76,7 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.main" />
+        <item itemvalue="Python.mainScript" />
       </list>
     </recent_temporary>
   </component>
@@ -110,5 +114,60 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="299" y="395" width="1673" height="801" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1605569128554">
+      <screen x="0" y="0" width="2560" height="1440" />
+    </state>
+    <state x="299" y="395" width="1673" height="801" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.2560.1440@0.0.2560.1440" timestamp="1605569128554" />
+    <state x="744" y="388" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.2560.1375@0.23.2560.1375" timestamp="1605568930482" />
+    <state x="1196" y="480" width="584" height="481" key="#xdebugger.XInspectDialog" timestamp="1605583116226">
+      <screen x="0" y="0" width="2560" height="1440" />
+    </state>
+    <state x="1196" y="480" width="584" height="481" key="#xdebugger.XInspectDialog/0.0.2560.1440/-1792.153.1792.1120@0.0.2560.1440" timestamp="1605583116226" />
+    <state x="1196" y="480" width="753" height="497" key="#xdebugger.XInspectDialog/0.0.2560.1440@0.0.2560.1440" timestamp="1605569501798" />
+    <state width="2539" height="615" key="GridCell.Tab.0.bottom" timestamp="1605586646625">
+      <screen x="0" y="0" width="2560" height="1440" />
+    </state>
+    <state width="2539" height="615" key="GridCell.Tab.0.bottom/0.0.2560.1440/-1792.153.1792.1120@0.0.2560.1440" timestamp="1605586646625" />
+    <state width="2539" height="615" key="GridCell.Tab.0.center" timestamp="1605586646623">
+      <screen x="0" y="0" width="2560" height="1440" />
+    </state>
+    <state width="2539" height="615" key="GridCell.Tab.0.center/0.0.2560.1440/-1792.153.1792.1120@0.0.2560.1440" timestamp="1605586646623" />
+    <state width="2539" height="615" key="GridCell.Tab.0.left" timestamp="1605586646474">
+      <screen x="0" y="0" width="2560" height="1440" />
+    </state>
+    <state width="2539" height="615" key="GridCell.Tab.0.left/0.0.2560.1440/-1792.153.1792.1120@0.0.2560.1440" timestamp="1605586646474" />
+    <state width="2539" height="615" key="GridCell.Tab.0.right" timestamp="1605586646624">
+      <screen x="0" y="0" width="2560" height="1440" />
+    </state>
+    <state width="2539" height="615" key="GridCell.Tab.0.right/0.0.2560.1440/-1792.153.1792.1120@0.0.2560.1440" timestamp="1605586646624" />
+    <state x="605" y="346" key="SettingsEditor" timestamp="1605577621162">
+      <screen x="0" y="0" width="2560" height="1440" />
+    </state>
+    <state x="605" y="346" key="SettingsEditor/0.0.2560.1440/-1792.153.1792.1120@0.0.2560.1440" timestamp="1605577621162" />
+    <state x="789" y="349" key="SettingsEditor/0.23.2560.1375@0.23.2560.1375" timestamp="1605568924410" />
+    <state width="1280" height="720" key="XDebugger.FullValuePopup" timestamp="1605569184451">
+      <screen x="0" y="0" width="2560" height="1440" />
+    </state>
+    <state width="1280" height="720" key="XDebugger.FullValuePopup/0.0.2560.1440@0.0.2560.1440" timestamp="1605569184451" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/KNN.py</url>
+          <line>39</line>
+          <option name="timeStamp" value="32" />
+        </line-breakpoint>
+      </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
