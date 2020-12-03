@@ -14,8 +14,12 @@ from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix
 import pandas as pd
 import seaborn as sn
+from sklearn.metrics import classification_report
+from sklearn.model_selection import KFold
+from sklearn.linear_model import SGDClassifier
+from sklearn.kernel_approximation import Nystroem
 
-#P = 2  # number of principal components
+# P = 2  # number of principal components
 
 ########################################### Data Importing and Preprocessing ##############################################
 # import the training and testing data
@@ -24,20 +28,14 @@ labels = ['Airplane', 'Automobile', 'Bird', 'Cat', 'Deer', 'Dog', 'Frog', 'Horse
 
 # Adjustable Parameters
 ## K nearest Neighbors ##
-Kneigh = [1, 3, 5, 10, 25, 50, 100]  # different k values to experiment with
+Kneigh = [1, 3, 5, 7, 10, 25, 50, 100]  # different k values to experiment with
 Dmetrics = ['manhattan', 'euclidean', 'chebyshev',
             'minkowski']
-## Kernel SVM ##
-#SVMKernels = ['linear', 'poly', 'sigmoid', 'rbf'] # different kernels to try for kernel based SVM
-#Cdistance = [10**-1, 10**1] # c regularization parameter
-#Gammas = [10**-9, 10**-2] #gamma regularization parameter
-
-SVMKernels = ['linear', 'rbf', 'poly', 'sigmoid'] # different kernels to try for kernel based SVM
-Cdistance = [10**-9,1, 10**3] # c regularization parameter
-Gammas = [10**-3, 1, 10**3 ] #gamma regularization parameter
-
-
-
+## Kernel SVM Parameters##
+SVMKernels = ['linear', 'rbf', 'poly', 'sigmoid']  # different kernels to try for kernel based SVM
+Cdistance = [10**-4, 10 ** -3, 10 ** -2, 10 ** -1, 10 ** 1, 10 ** 2, 10**3, 10**4] # c regularization parameter
+Gammas = [10**-4, 10 ** -3, 10 ** -2, 10 ** -1, 10 ** 1, 10 ** 2, 10**3, 10**4]  # gamma regularization parameter
+Degrees = [2, 3, 4, 5,10,50]  # degrees for non linear kernel methods
 CVgroups = 3  # 10 cross validation groups
 
 ### Feature Extraction ###
@@ -56,7 +54,6 @@ x_test_Labhist = np.zeros((x_test.shape[0], 256 * 3))  # vectorized color histog
 x_train_Labhist = np.zeros((x_train.shape[0], 256 * 3))  # vectorized color histogram
 x_test_gray = np.zeros((x_test.shape[0], x_test.shape[1], x_test.shape[2]))
 x_train_gray = np.zeros((x_train.shape[0], x_train.shape[1], x_train.shape[2]))
-scaler = StandardScaler()  # import standard scalar class
 
 ### Extract color histograms and grayscale images ###
 for k in range(0, x_test.shape[0]):
@@ -75,7 +72,7 @@ for k in range(0, x_test.shape[0]):
         x_test_Labhist[k, layer * (256): layer * (256) + 256] = hist  # store the histogram
 
     # convert test image to grayscale and store it
-    grayscale = rgb2gray(x_test[k, :, :, :])
+    grayscale = rgb2gray(x_test[k, :, :, :]) * 255
     x_test_gray[k, :, :] = grayscale
 
 ## Repeat for train images
@@ -110,111 +107,119 @@ xtrain_vec_g = np.squeeze(
 xtest_vec_g = np.squeeze(
     np.reshape(x_test_gray, (x_test_gray.shape[0], x_test_gray.shape[1] * x_test_gray.shape[2], 1)))
 
-# scale all data to 0 mean and unit variance before dimensionality reduction
+# scale all data to 0 mean and unit variance before dimensionality reduction, apply transform to test data
+scaler = StandardScaler()  # import standard scalar class
 x_train_RGBhist = scaler.fit_transform(x_train_RGBhist)
-x_test_RGBhist = scaler.fit_transform(x_test_RGBhist)
-x_test_HSVhist = scaler.fit_transform(x_test_HSVhist)
-x_train_HSVhist = scaler.fit_transform(x_train_HSVhist)
-x_test_Labhist = scaler.fit_transform(x_test_Labhist)
-x_train_Labhist = scaler.fit_transform(x_train_Labhist)
-xtrain_vec_g = scaler.fit_transform(xtrain_vec_g)
-xtest_vec_g = scaler.fit_transform(xtest_vec_g)
-xtrain_vec = scaler.fit_transform(xtrain_vec)
-xtest_vec = scaler.fit_transform(xtest_vec)
+x_test_RGBhist = scaler.transform(x_test_RGBhist)
 
+scaler = StandardScaler()  # import standard scalar class
+x_train_HSVhist = scaler.fit_transform(x_train_HSVhist)
+x_test_HSVhist = scaler.transform(x_test_HSVhist)
+
+scaler = StandardScaler()  # import standard scalar class
+x_train_Labhist = scaler.fit_transform(x_train_Labhist)
+x_test_Labhist = scaler.transform(x_test_Labhist)
+
+scaler = StandardScaler()  # import standard scalar class
+xtrain_vec_g = scaler.fit_transform(xtrain_vec_g)
+xtest_vec_g = scaler.transform(xtest_vec_g)
+
+scaler = StandardScaler()  # import standard scalar class
+xtrain_vec = scaler.fit_transform(xtrain_vec)
+xtest_vec = scaler.transform(xtest_vec)
 
 ##dimensionaltiy reduction using PCA keeping only certain number of principal components ##
 
 ##find number of principal components to keep by plotting log magnitude of singular values versus singular value
-_, s, _ = np.linalg.svd(x_train_RGBhist, full_matrices=False)
-plt.figure(figsize=(10, 7))
-plt.plot(np.linspace(0, len(s), len(s)) , np.log10(s), 'ro-')
-plt.title('RGB Histogram Training Data Singular Values')
-plt.xlabel('Singular Value')
-plt.ylabel('Log10(Singular Values)')
-plt.savefig('x_train_RGBhist_SV.png', format ='png') # save as png
-plt.close('all')
-
-_, s, _ = np.linalg.svd(x_test_RGBhist, full_matrices=False)
-plt.figure(figsize=(10, 7))
-plt.plot(np.linspace(0, len(s), len(s)) , np.log10(s), 'ro-')
-plt.title('RGB Histogram Testing Data Singular Values')
-plt.xlabel('Singular Value')
-plt.ylabel('Log10(Singular Values)')
-plt.savefig('x_test_RGBhist_SV.png', format ='png') # save as png
-plt.close('all')
-
-_, s, _ = np.linalg.svd(x_test_HSVhist, full_matrices=False)
-plt.figure(figsize=(10, 7))
-plt.plot(np.linspace(0, len(s), len(s)) , np.log10(s), 'ro-')
-plt.title('HSV Histogram Testing Data Singular Values')
-plt.xlabel('Singular Value')
-plt.ylabel('Log10(Singular Values)')
-plt.savefig('x_test_HSVhist_SV.png', format ='png') # save as png
-plt.close('all')
-
-_, s, _ = np.linalg.svd(x_train_HSVhist, full_matrices=False)
-plt.figure(figsize=(10, 7))
-plt.plot(np.linspace(0, len(s), len(s)) , np.log10(s), 'ro-')
-plt.title('HSV Histogram Training Data Singular Values')
-plt.xlabel('Singular Value')
-plt.ylabel('Log10(Singular Values)')
-plt.savefig('x_train_HSVhist_SV.png', format ='png') # save as png
-plt.close('all')
-
-_, s, _ = np.linalg.svd(x_test_Labhist, full_matrices=False)
-plt.figure(figsize=(10, 7))
-plt.plot(np.linspace(0, len(s), len(s)) , np.log10(s), 'ro-')
-plt.title('LAB Histogram Testing Data Singular Values')
-plt.xlabel('Singular Value')
-plt.ylabel('Log10(Singular Values)')
-plt.savefig('x_test_Labhist_SV.png', format ='png') # save as png
-plt.close('all')
-
-_, s, _ = np.linalg.svd(x_train_Labhist, full_matrices=False)
-plt.figure(figsize=(10, 7))
-plt.plot(np.linspace(0, len(s), len(s)) , np.log10(s), 'ro-')
-plt.title('LAB Histogram Training Data Singular Values')
-plt.xlabel('Singular Value')
-plt.ylabel('Log10(Singular Values)')
-plt.savefig('x_train_Labhist_SV.png', format ='png') # save as png
-plt.close('all')
-
-_, s, _ = np.linalg.svd(xtrain_vec_g, full_matrices=False)
-plt.figure(figsize=(10, 7))
-plt.plot(np.linspace(0, len(s), len(s)) , np.log10(s), 'ro-')
-plt.title('Grayscale Raw Pixel Training Data Singular Values')
-plt.xlabel('Singular Value')
-plt.ylabel('Log10(Singular Values)')
-plt.savefig('xtrain_vec_g_SV.png', format ='png') # save as png
-plt.close('all')
-
-_, s, _ = np.linalg.svd(xtest_vec_g, full_matrices=False)
-plt.figure(figsize=(10, 7))
-plt.plot(np.linspace(0, len(s), len(s)) , np.log10(s), 'ro-')
-plt.title('Grayscale Raw Pixel Testing Data Singular Values')
-plt.xlabel('Singular Value')
-plt.ylabel('Log10(Singular Values)')
-plt.savefig('xtest_vec_g_SV.png', format ='png') # save as png
-plt.close('all')
-
-_, s, _ = np.linalg.svd(xtrain_vec, full_matrices=False)
-plt.figure(figsize=(10, 7))
-plt.plot(np.linspace(0, len(s), len(s)) , np.log10(s), 'ro-')
-plt.title('RGB Raw Pixel Training Data Singular Values')
-plt.xlabel('Singular Value')
-plt.ylabel('Log10(Singular Values)')
-plt.savefig('xtrain_vec_SV.png', format ='png') # save as png
-plt.close('all')
-
-_, s, _ = np.linalg.svd(xtest_vec, full_matrices=False)
-plt.figure(figsize=(10, 7))
-plt.plot(np.linspace(0, len(s), len(s)) , np.log10(s), 'ro-')
-plt.title('RGB Raw Pixel Testing Data Singular Values')
-plt.xlabel('Singular Value')
-plt.ylabel('Log10(Singular Values)')
-plt.savefig('xtest_vec_SV.png', format ='png') # save as png
-plt.close('all')
+#_, s, _ = np.linalg.svd(x_train_RGBhist, full_matrices=False)
+#plt.figure(figsize=(10, 7))
+#plt.plot(np.linspace(0, len(s), len(s)), np.log10(s), 'ro-')
+#plt.title('RGB Histogram Training Data Singular Values')
+#plt.xlabel('Singular Value')
+#plt.ylabel('Log10(Singular Values)')
+#plt.savefig('x_train_RGBhist_SV.png', format='png')  # save as png
+#plt.close('all')
+#
+#_, s, _ = np.linalg.svd(x_test_RGBhist, full_matrices=False)
+#plt.figure(figsize=(10, 7))
+#plt.plot(np.linspace(0, len(s), len(s)), np.log10(s), 'ro-')
+#plt.title('RGB Histogram Testing Data Singular Values')
+#plt.xlabel('Singular Value')
+#plt.ylabel('Log10(Singular Values)')
+#plt.savefig('x_test_RGBhist_SV.png', format='png')  # save as png
+#plt.close('all')
+#
+#_, s, _ = np.linalg.svd(x_test_HSVhist, full_matrices=False)
+#plt.figure(figsize=(10, 7))
+#plt.plot(np.linspace(0, len(s), len(s)), np.log10(s), 'ro-')
+#plt.title('HSV Histogram Testing Data Singular Values')
+#plt.xlabel('Singular Value')
+#plt.ylabel('Log10(Singular Values)')
+#plt.savefig('x_test_HSVhist_SV.png', format='png')  # save as png
+#plt.close('all')
+#
+#_, s, _ = np.linalg.svd(x_train_HSVhist, full_matrices=False)
+#plt.figure(figsize=(10, 7))
+#plt.plot(np.linspace(0, len(s), len(s)), np.log10(s), 'ro-')
+#plt.title('HSV Histogram Training Data Singular Values')
+#plt.xlabel('Singular Value')
+#plt.ylabel('Log10(Singular Values)')
+#plt.savefig('x_train_HSVhist_SV.png', format='png')  # save as png
+#plt.close('all')
+#
+#_, s, _ = np.linalg.svd(x_test_Labhist, full_matrices=False)
+#plt.figure(figsize=(10, 7))
+#plt.plot(np.linspace(0, len(s), len(s)), np.log10(s), 'ro-')
+#plt.title('LAB Histogram Testing Data Singular Values')
+#plt.xlabel('Singular Value')
+#plt.ylabel('Log10(Singular Values)')
+#plt.savefig('x_test_Labhist_SV.png', format='png')  # save as png
+#plt.close('all')
+#
+#_, s, _ = np.linalg.svd(x_train_Labhist, full_matrices=False)
+#plt.figure(figsize=(10, 7))
+#plt.plot(np.linspace(0, len(s), len(s)), np.log10(s), 'ro-')
+#plt.title('LAB Histogram Training Data Singular Values')
+#plt.xlabel('Singular Value')
+#plt.ylabel('Log10(Singular Values)')
+#plt.savefig('x_train_Labhist_SV.png', format='png')  # save as png
+#plt.close('all')
+#
+#_, s, _ = np.linalg.svd(xtrain_vec_g, full_matrices=False)
+#plt.figure(figsize=(10, 7))
+#plt.plot(np.linspace(0, len(s), len(s)), np.log10(s), 'ro-')
+#plt.title('Grayscale Raw Pixel Training Data Singular Values')
+#plt.xlabel('Singular Value')
+#plt.ylabel('Log10(Singular Values)')
+#plt.savefig('xtrain_vec_g_SV.png', format='png')  # save as png
+#plt.close('all')
+#
+#_, s, _ = np.linalg.svd(xtest_vec_g, full_matrices=False)
+#plt.figure(figsize=(10, 7))
+#plt.plot(np.linspace(0, len(s), len(s)), np.log10(s), 'ro-')
+#plt.title('Grayscale Raw Pixel Testing Data Singular Values')
+#plt.xlabel('Singular Value')
+#plt.ylabel('Log10(Singular Values)')
+#plt.savefig('xtest_vec_g_SV.png', format='png')  # save as png
+#plt.close('all')
+#
+#_, s, _ = np.linalg.svd(xtrain_vec, full_matrices=False)
+#plt.figure(figsize=(10, 7))
+#plt.plot(np.linspace(0, len(s), len(s)), np.log10(s), 'ro-')
+#plt.title('RGB Raw Pixel Training Data Singular Values')
+#plt.xlabel('Singular Value')
+#plt.ylabel('Log10(Singular Values)')
+#plt.savefig('xtrain_vec_SV.png', format='png')  # save as png
+#plt.close('all')
+#
+#_, s, _ = np.linalg.svd(xtest_vec, full_matrices=False)
+#plt.figure(figsize=(10, 7))
+#plt.plot(np.linspace(0, len(s), len(s)), np.log10(s), 'ro-')
+#plt.title('RGB Raw Pixel Testing Data Singular Values')
+#plt.xlabel('Singular Value')
+#plt.ylabel('Log10(Singular Values)')
+#plt.savefig('xtest_vec_SV.png', format='png')  # save as png
+#plt.close('all')
 
 P_RGBHist = 23
 P_HSVHist = 35
@@ -223,32 +228,230 @@ P_GS = 50
 P_RGB = 40
 pca = PCA(n_components=P_RGBHist)  # get PCA fitter
 x_train_RGBhist = pca.fit_transform(x_train_RGBhist)
-x_test_RGBhist = pca.fit_transform(x_test_RGBhist)
+x_test_RGBhist = pca.transform(x_test_RGBhist)
 
 pca = PCA(n_components=P_HSVHist)  # get PCA fitter
-x_test_HSVhist = pca.fit_transform(x_test_HSVhist)
 x_train_HSVhist = pca.fit_transform(x_train_HSVhist)
+x_test_HSVhist = pca.transform(x_test_HSVhist)
 
 pca = PCA(n_components=P_LAB)  # get PCA fitter
-x_test_Labhist = pca.fit_transform(x_test_Labhist)
 x_train_Labhist = pca.fit_transform(x_train_Labhist)
+x_test_Labhist = pca.transform(x_test_Labhist)
 
 pca = PCA(n_components=P_GS)  # get PCA fitter
 xtrain_vec_g = pca.fit_transform(xtrain_vec_g)
-xtest_vec_g = pca.fit_transform(xtest_vec_g)
+xtest_vec_g = pca.transform(xtest_vec_g)
 
 pca = PCA(n_components=P_RGB)  # get PCA fitter
 xtrain_vec = pca.fit_transform(xtrain_vec)
-xtest_vec = pca.fit_transform(xtest_vec)
+xtest_vec = pca.transform(xtest_vec)
 
 ########################################### Implement KNN #########################################
 
 # define grid search parameters for cross validation
-#knnModel = KNeighborsClassifier()  # get the class model for KNN
-#GridParams = {'n_neighbors': Kneigh,
-#              'metric': Dmetrics}  # dictionary of parameters to test and evaluate (neighbors and distances)
-#knn_gscv = GridSearchCV(knnModel, GridParams,
-#                        cv=CVgroups, verbose=10)  # model for performing grid search with K and different distance metrics
+knnModel = KNeighborsClassifier()  # get the class model for KNN
+GridParams = {'n_neighbors': Kneigh,
+              'metric': Dmetrics}  # dictionary of parameters to test and evaluate (neighbors and distances)
+knn_gscv = GridSearchCV(knnModel, GridParams,
+                        cv=CVgroups,
+                        verbose=10)  # model for performing grid search with K and different distance metrics
+
+# for each feature group defined above
+# create feature set dictionaries
+TrainFeatureSet = {'x_train_RGBhist': [x_train_RGBhist, x_test_RGBhist],
+                   'x_train_HSVhist': [x_train_HSVhist, x_test_HSVhist],
+                   'x_train_Labhist': [x_train_Labhist, x_test_Labhist],
+                   'xtrain_vec_g': [xtrain_vec_g, xtest_vec_g],
+                   'xtrain_vec': [xtrain_vec, xtest_vec]}
+#for i in TrainFeatureSet:
+#    # fit model to training data
+#    knn_gscv.fit(TrainFeatureSet[i][0], np.ravel(y_train))
+#    # get statistics for cross validation
+#    StatDF = pd.DataFrame.from_dict(knn_gscv.cv_results_)
+#    CVStatsFileName = i + '_trainCVResults.csv'
+#    StatDF.to_csv(CVStatsFileName)  # save the cross validation statistics
+#
+#    # get prediction of the final test set
+#    BestParams = knn_gscv.best_params_  # get the best parameters
+#    knn = KNeighborsClassifier(n_neighbors=BestParams['n_neighbors'], metric=BestParams['metric'])
+#    knn.fit(TrainFeatureSet[i][0], np.ravel(y_train))  # train with the best parameter on the relevant training set
+#    yPred = knn.predict(TrainFeatureSet[i][1])  # test on the test set
+#
+#    # generate confusion matrix
+#    CM = confusion_matrix(y_test, yPred)
+#    df_cm = pd.DataFrame(CM, index=[i for i in labels],
+#                         columns=[i for i in labels])
+#    plt.figure(figsize=(12, 9))
+#    sn.heatmap(df_cm, annot=True, fmt="d")
+#    plt.xlabel('Predicted Class')
+#    plt.ylabel('True Class')
+#    CMatrixFileN = i + '_CM.png'
+#    plt.savefig(CMatrixFileN, format='png')  # save as png
+#    plt.close('all')
+#
+#    # generate and save classification report
+#    report_dict = classification_report(y_test, yPred, output_dict=True)
+#    reportDF = pd.DataFrame(report_dict)
+#    CVStatsFileName = i + '_testCVResults.csv'
+#    reportDF.to_csv(CVStatsFileName)  # save the test results
+#
+#
+
+
+########################################### Implement SVM #########################################
+
+GridParams = {'C': Cdistance,
+              'kernel': SVMKernels, 'gamma': Gammas,
+              'degrees': Degrees}  # dictionary of parameters to test and evaluate
+SGDParameters = {'loss': 'hinge', 'penalty': 'l1', 'fit_intercept': False, 'verbose': 100}
+# use hinge loss since implementing SVM (hinge loss = linear, and for kernel method kernel transformation is applied before linear SVM)
+# penalty = l1 for sparse solution
+# alpha = C values defined at the top parameter list (regularizer possible values, to be determined in grid search)
+# fit_intercept = False, data is already centered around 0 mean
+# verbose = 10, display message updates on progress
+
+KernelTransformationParameters = {'NComp': 100}
+# 100 component approximation of training data kernel transform
+# gamma = gamma values to grid search
+# degree = degree values to grid search
+
+# perform cross validation manually
+for data in TrainFeatureSet:
+
+    SVM_CVResults = {'params': [], 'scores': [],'transforms': []}  # initialize empty dictionary to store cross validation results
+
+    SVM_TrainData = TrainFeatureSet[data][0]  # extract the training data for the relevant feature set
+    ylabels = np.ravel(y_train)
+    kf = KFold(n_splits=CVgroups)
+    Kindices = kf.split(SVM_TrainData)  # get the generator for the indexes of train and test data
+
+    for train_index, test_index in Kindices:
+        x_train_SVM, x_test_SVM = SVM_TrainData[train_index, :], SVM_TrainData[test_index,:]  # extract data for this group of holdout and training data
+        y_train_SVM, y_test_SVM = ylabels[train_index], ylabels[test_index]  # extract the labels for the holdout and training data
+
+        ## train on training data using different hyperparameters and test on holdout data
+
+        for kernel in GridParams['kernel']:
+            for c in GridParams['C']: # calculate linear models here to avoid duplicate metrics for linear due to iterations of nonlinear parameters
+
+                if (kernel == 'linear'):  # if linear model
+                    # get linear SVM model
+                    model = SGDClassifier(loss=SGDParameters['loss'], penalty=SGDParameters['penalty'], alpha=c,
+                                          fit_intercept=False, verbose=100)
+                    # train model
+                    model.fit(x_train_SVM, np.ravel(y_train_SVM))
+                    # test on holdout data
+                    accur = model.score(x_test_SVM, np.ravel(y_test_SVM))
+
+                    # store results for this holdout group and parameter combination
+                    SVM_CVResults['params'].append({'C': c, 'kernel': kernel})
+                    SVM_CVResults['scores'].append(accur)  # append accuracy score metric
+
+                for gamma in GridParams['gamma']:
+                    for degree in GridParams['degrees']:
+
+                        if (kernel != 'linear'):
+                            # transform train and test data using kernel approximation
+                            feature_map_nystroem = Nystroem(gamma=gamma, degree = degree, n_components= KernelTransformationParameters['NComp'])
+                            x_train_SVM_transformed = feature_map_nystroem.fit_transform(x_train_SVM)
+                            x_test_SVM_transformed = feature_map_nystroem.transform(x_test_SVM) # apply same transformation to test data
+
+                            #fit model
+                            # get non-linear SVM model
+                            model = SGDClassifier(loss=SGDParameters['loss'], penalty=SGDParameters['penalty'], alpha=c,
+                                                  fit_intercept=False, verbose=100)
+                            # train model
+                            model.fit(x_train_SVM_transformed, np.ravel(y_train_SVM))
+                            # test on holdout data
+                            accur = model.score(x_test_SVM_transformed, np.ravel(y_test_SVM))
+
+                            # store results for this holdout group and parameter combination
+                            SVM_CVResults['params'].append({'C': c, 'kernel': kernel, 'gamma': gamma, 'degree': degree})
+                            SVM_CVResults['scores'].append(accur)  # append accuracy score metric
+                            SVM_CVResults['transforms'].append(feature_map_nystroem) # append transform matrix to use for final testing set after choosing best parameters
+    #extract params and store as a dataframe to view cross validation results
+    ParamsSVM = np.array(SVM_CVResults['params']).reshape(CVgroups,-1).T
+    ScoresSVM = np.array(SVM_CVResults['scores']).reshape(CVgroups,-1).T
+    TransformsSVM = np.array(SVM_CVResults['transforms'])
+    MeanScore = np.mean(ScoresSVM,1) # get mean cross validation score
+    #convert back to dict and store as dataframe and save to CSV file
+    Results = {'Parameters': ParamsSVM[:,0], 'HO Group 1 Score': ScoresSVM[:,0],'HO Group 2 Score': ScoresSVM[:,1],'HO Group 3 Score': ScoresSVM[:,2], 'Mean CV Score': MeanScore}
+    ResultsDF = pd.DataFrame(Results)
+    CVStatsFileName = data + '_testCVResults_SVM.csv'
+    ResultsDF.to_csv(CVStatsFileName)  # save the test results
+
+    #Find the Best Parameter Set from Data
+    MaxIndex = np.argmax(MeanScore) # get the index
+    #extract the parameters
+    BestParams = ParamsSVM[MaxIndex,0]
+
+    if (BestParams['kernel'] == 'linear'): # if linear, use linear SVM Model, generate confusion matrix, and save results
+        model = SGDClassifier(loss=SGDParameters['loss'], penalty=SGDParameters['penalty'], alpha=BestParams['C'],
+                              fit_intercept=False, verbose=100)
+        SVM_TestDataFinal = TrainFeatureSet[data][1]
+        model.fit(TrainFeatureSet[data][0], np.ravel(y_train)) # fit model on training data with best parameters
+        yPred = model.predict(SVM_TestDataFinal)
+
+         #generate confusion matrix
+        CM = confusion_matrix(y_test, yPred)
+        df_cm = pd.DataFrame(CM, index=[i for i in labels],
+                             columns=[i for i in labels])
+        plt.figure(figsize=(12, 9))
+        sn.heatmap(df_cm, annot=True, fmt="d")
+        plt.xlabel('Predicted Class')
+        plt.ylabel('True Class')
+        CMatrixFileN = data + '_CM_SVM.png'
+        plt.savefig(CMatrixFileN, format='png')  # save as png
+        plt.close('all')
+
+        # generate and save classification report
+        report_dict = classification_report(y_test, yPred, output_dict=True)
+        reportDF = pd.DataFrame(report_dict)
+        CVStatsFileName = data + '_testResults_SVM.csv'
+        reportDF.to_csv(CVStatsFileName)  # save the test results
+    else:
+        #get transformation to apply on testing data
+        TransformExtractIndex = MaxIndex - len(GridParams['C'])
+        ExtractedTransform = TransformsSVM[TransformExtractIndex]
+        #perform same transformation as was on training data
+        SVM_TestDataFinal = TrainFeatureSet[data][1]
+        SVM_TrainData_Transformed = ExtractedTransform.transform(TrainFeatureSet[data][0])
+        SVM_TestDataFinal_Transformed = ExtractedTransform.transform(SVM_TestDataFinal) # apply same transformation to test data
+        model = SGDClassifier(loss=SGDParameters['loss'], penalty=SGDParameters['penalty'], alpha=BestParams['C'],
+                              fit_intercept=False, verbose=100)
+        model.fit(SVM_TrainData_Transformed, np.ravel(y_train)) # fit model on training data with best parameters
+        yPred = model.predict(SVM_TestDataFinal_Transformed)
+
+        # generate confusion matrix
+        CM = confusion_matrix(y_test, yPred)
+        df_cm = pd.DataFrame(CM, index=[i for i in labels],
+                             columns=[i for i in labels])
+        plt.figure(figsize=(12, 9))
+        sn.heatmap(df_cm, annot=True, fmt="d")
+        plt.xlabel('Predicted Class')
+        plt.ylabel('True Class')
+        CMatrixFileN = data + '_CM_SVM.png'
+        plt.savefig(CMatrixFileN, format='png')  # save as png
+        plt.close('all')
+
+        # generate and save classification report
+        report_dict = classification_report(y_test, yPred, output_dict=True)
+        reportDF = pd.DataFrame(report_dict)
+        CVStatsFileName = data + '_testResults_SVM.csv'
+        reportDF.to_csv(CVStatsFileName)  # save the test results
+
+
+
+
+
+
+# define grid search parameters for cross validation
+#SVMModel = SVC()  # get the class model for KNN
+#GridParams = {'C': Cdistance,
+#              'kernel': SVMKernels, 'gamma': Gammas,
+#              'degrees': Degrees}  # dictionary of parameters to test and evaluate (neighbors and distances)
+#SVM_gscv = GridSearchCV(SVMModel, GridParams,
+#                        cv=CVgroups, verbose=100)  # model for performing grid search with different parameters
 #
 ## for each feature group defined above
 ## create feature set dictionaries
@@ -259,17 +462,18 @@ xtest_vec = pca.fit_transform(xtest_vec)
 #                   'xtrain_vec': [xtrain_vec, xtest_vec]}
 #for i in TrainFeatureSet:
 #    # fit model to training data
-#    knn_gscv.fit(TrainFeatureSet[i][0], np.ravel(y_train))
+#    SVM_gscv.fit(TrainFeatureSet[i][0], np.ravel(y_train))
 #    # get statistics for cross validation
-#    StatDF = pd.DataFrame.from_dict(knn_gscv.cv_results_)
-#    CVStatsFileName = i + '_trainCVResults.csv'
+#    StatDF = pd.DataFrame.from_dict(SVM_gscv.cv_results_)
+#    CVStatsFileName = i + '_trainCVResults_SVM.csv'
 #    StatDF.to_csv(CVStatsFileName)  # save the cross validation statistics
 #
 #    # get prediction of the final test set
-#    BestParams = knn_gscv.best_params_ #get the best parameters
-#    knn = KNeighborsClassifier(n_neighbors=BestParams['n_neighbors'], metric=BestParams['metric'])
-#    knn.fit(TrainFeatureSet[i][0], np.ravel(y_train)) # train with the best parameter on the relevant training set
-#    yPred = knn.predict(TrainFeatureSet[i][1]) # test on the test set
+#    BestParams = SVM_gscv.best_params_  # get the best parameters
+#    SVM_model = SVC(C=BestParams['C'], kernel=BestParams['kernel'], gamma=BestParams['gamma'])
+#    SVM_model.fit(TrainFeatureSet[i][0],
+#                  np.ravel(y_train))  # train with the best parameter on the relevant training set
+#    yPred = SVM_model.predict(TrainFeatureSet[i][1])  # test on the test set
 #
 #    # generate confusion matrix
 #    CM = confusion_matrix(y_test, yPred)
@@ -279,53 +483,11 @@ xtest_vec = pca.fit_transform(xtest_vec)
 #    sn.heatmap(df_cm, annot=True, fmt="d")
 #    plt.xlabel('Predicted Class')
 #    plt.ylabel('True Class')
-#    CMatrixFileN = i + '_CM.png'
-#    plt.savefig(CMatrixFileN, format ='png') # save as png
+#    CMatrixFileN = i + '_CM_SVM.png'
+#    plt.savefig(CMatrixFileN, format='png')  # save as png
 #    plt.close('all')
 #
-
-
-########################################### Implement SVM #########################################
-
-#define grid search parameters for cross validation
-SVMModel = SVC()  # get the class model for KNN
-GridParams = {'C': Cdistance,
-              'kernel': SVMKernels, 'gamma': Gammas}  # dictionary of parameters to test and evaluate (neighbors and distances)
-SVM_gscv = GridSearchCV(SVMModel, GridParams,
-                        cv=CVgroups, verbose=100)  # model for performing grid search with different parameters
-
-# for each feature group defined above
-# create feature set dictionaries
-TrainFeatureSet = {'x_train_RGBhist': [x_train_RGBhist, x_test_RGBhist],
-                   'x_train_HSVhist': [x_train_HSVhist, x_test_HSVhist],
-                   'x_train_Labhist': [x_train_Labhist, x_test_Labhist],
-                   'xtrain_vec_g': [xtrain_vec_g, xtest_vec_g],
-                   'xtrain_vec': [xtrain_vec, xtest_vec]}
-for i in TrainFeatureSet:
-    # fit model to training data
-    SVM_gscv.fit(TrainFeatureSet[i][0], np.ravel(y_train))
-    # get statistics for cross validation
-    StatDF = pd.DataFrame.from_dict(SVM_gscv.cv_results_)
-    CVStatsFileName = i + '_trainCVResults_SVM.csv'
-    StatDF.to_csv(CVStatsFileName)  # save the cross validation statistics
-
-    # get prediction of the final test set
-    BestParams = SVM_gscv.best_params_ #get the best parameters
-    SVM_model = SVC(C=BestParams['C'], kernel=BestParams['kernel'], gamma=BestParams['gamma'])
-    SVM_model.fit(TrainFeatureSet[i][0], np.ravel(y_train)) # train with the best parameter on the relevant training set
-    yPred = SVM_model.predict(TrainFeatureSet[i][1]) # test on the test set
-
-    # generate confusion matrix
-    CM = confusion_matrix(y_test, yPred)
-    df_cm = pd.DataFrame(CM, index=[i for i in labels],
-                         columns=[i for i in labels])
-    plt.figure(figsize=(10, 7))
-    sn.heatmap(df_cm, annot=True, fmt="d")
-    plt.xlabel('Predicted Class')
-    plt.ylabel('True Class')
-    CMatrixFileN = i + '_CM_SVM.png'
-    plt.savefig(CMatrixFileN, format ='png') # save as png
-    plt.close('all')
-
-
-
+#    report_dict = classification_report(y_test, yPred, output_dict=True)
+#    reportDF = pd.DataFrame(report_dict)
+#    CVStatsFileName = i + '_testCVResults_SVM.csv'
+#    reportDF.to_csv(CVStatsFileName)  # save the test results
