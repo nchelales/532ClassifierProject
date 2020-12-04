@@ -32,10 +32,10 @@ Kneigh = [1, 3, 5, 7, 10, 25, 50, 100]  # different k values to experiment with
 Dmetrics = ['manhattan', 'euclidean', 'chebyshev',
             'minkowski']
 ## Kernel SVM Parameters##
-SVMKernels = ['linear', 'rbf', 'poly', 'sigmoid']  # different kernels to try for kernel based SVM
-Cdistance = [10**-4, 10 ** -3, 10 ** -2, 10 ** -1, 10 ** 1, 10 ** 2, 10**3, 10**4] # c regularization parameter
-Gammas = [10**-4, 10 ** -3, 10 ** -2, 10 ** -1, 10 ** 1, 10 ** 2, 10**3, 10**4]  # gamma regularization parameter
-Degrees = [2, 3, 4, 5,10,50]  # degrees for non linear kernel methods
+SVMKernels = ['linear', 'rbf', 'poly', 'sigmoid', 'laplacian']  # different kernels to try for kernel based SVM
+Cdistance = [10**-8, 10**-7, 10**-6, 10 ** -5, 10 ** -4, 10**-3, 10**-2] # c regularization parameter
+Gammas = [10**-8,10**-7, 10**-6, 10 ** -5, 10 ** -4, 10**-3, 10**-2]   # gamma regularization parameter
+Degrees = [2,3,4,5,6,7,20]  # degrees for non linear kernel methods
 CVgroups = 3  # 10 cross validation groups
 
 ### Feature Extraction ###
@@ -246,7 +246,7 @@ pca = PCA(n_components=P_RGB)  # get PCA fitter
 xtrain_vec = pca.fit_transform(xtrain_vec)
 xtest_vec = pca.transform(xtest_vec)
 
-########################################### Implement KNN #########################################
+############################################ Implement KNN #########################################
 
 # define grid search parameters for cross validation
 knnModel = KNeighborsClassifier()  # get the class model for KNN
@@ -254,7 +254,7 @@ GridParams = {'n_neighbors': Kneigh,
               'metric': Dmetrics}  # dictionary of parameters to test and evaluate (neighbors and distances)
 knn_gscv = GridSearchCV(knnModel, GridParams,
                         cv=CVgroups,
-                        verbose=10)  # model for performing grid search with K and different distance metrics
+                        verbose=100)  # model for performing grid search with K and different distance metrics
 
 # for each feature group defined above
 # create feature set dictionaries
@@ -269,14 +269,12 @@ TrainFeatureSet = {'x_train_RGBhist': [x_train_RGBhist, x_test_RGBhist],
 #    # get statistics for cross validation
 #    StatDF = pd.DataFrame.from_dict(knn_gscv.cv_results_)
 #    CVStatsFileName = i + '_trainCVResults.csv'
-#    StatDF.to_csv(CVStatsFileName)  # save the cross validation statistics
-#
+#    StatDF.to_csv(CVStatsFileName)  # save the cross validation statistics#
 #    # get prediction of the final test set
 #    BestParams = knn_gscv.best_params_  # get the best parameters
 #    knn = KNeighborsClassifier(n_neighbors=BestParams['n_neighbors'], metric=BestParams['metric'])
 #    knn.fit(TrainFeatureSet[i][0], np.ravel(y_train))  # train with the best parameter on the relevant training set
-#    yPred = knn.predict(TrainFeatureSet[i][1])  # test on the test set
-#
+#    yPred = knn.predict(TrainFeatureSet[i][1])  # test on the test set#
 #    # generate confusion matrix
 #    CM = confusion_matrix(y_test, yPred)
 #    df_cm = pd.DataFrame(CM, index=[i for i in labels],
@@ -287,207 +285,191 @@ TrainFeatureSet = {'x_train_RGBhist': [x_train_RGBhist, x_test_RGBhist],
 #    plt.ylabel('True Class')
 #    CMatrixFileN = i + '_CM.png'
 #    plt.savefig(CMatrixFileN, format='png')  # save as png
-#    plt.close('all')
-#
+#    plt.close('all')#
 #    # generate and save classification report
 #    report_dict = classification_report(y_test, yPred, output_dict=True)
 #    reportDF = pd.DataFrame(report_dict)
 #    CVStatsFileName = i + '_testCVResults.csv'
-#    reportDF.to_csv(CVStatsFileName)  # save the test results
+#    reportDF.to_csv(CVStatsFileName)  # save the test results##
 #
-#
-
 
 ########################################### Implement SVM #########################################
 
-GridParams = {'C': Cdistance,
-              'kernel': SVMKernels, 'gamma': Gammas,
-              'degrees': Degrees}  # dictionary of parameters to test and evaluate
-SGDParameters = {'loss': 'hinge', 'penalty': 'l1', 'fit_intercept': False, 'verbose': 100}
-# use hinge loss since implementing SVM (hinge loss = linear, and for kernel method kernel transformation is applied before linear SVM)
-# penalty = l1 for sparse solution
-# alpha = C values defined at the top parameter list (regularizer possible values, to be determined in grid search)
-# fit_intercept = False, data is already centered around 0 mean
-# verbose = 10, display message updates on progress
-
-KernelTransformationParameters = {'NComp': 100}
-# 100 component approximation of training data kernel transform
-# gamma = gamma values to grid search
-# degree = degree values to grid search
-
-# perform cross validation manually
-for data in TrainFeatureSet:
-
-    SVM_CVResults = {'params': [], 'scores': [],'transforms': []}  # initialize empty dictionary to store cross validation results
-
-    SVM_TrainData = TrainFeatureSet[data][0]  # extract the training data for the relevant feature set
-    ylabels = np.ravel(y_train)
-    kf = KFold(n_splits=CVgroups)
-    Kindices = kf.split(SVM_TrainData)  # get the generator for the indexes of train and test data
-
-    for train_index, test_index in Kindices:
-        x_train_SVM, x_test_SVM = SVM_TrainData[train_index, :], SVM_TrainData[test_index,:]  # extract data for this group of holdout and training data
-        y_train_SVM, y_test_SVM = ylabels[train_index], ylabels[test_index]  # extract the labels for the holdout and training data
-
-        ## train on training data using different hyperparameters and test on holdout data
-
-        for kernel in GridParams['kernel']:
-            for c in GridParams['C']: # calculate linear models here to avoid duplicate metrics for linear due to iterations of nonlinear parameters
-
-                if (kernel == 'linear'):  # if linear model
-                    # get linear SVM model
-                    model = SGDClassifier(loss=SGDParameters['loss'], penalty=SGDParameters['penalty'], alpha=c,
-                                          fit_intercept=False, verbose=100)
-                    # train model
-                    model.fit(x_train_SVM, np.ravel(y_train_SVM))
-                    # test on holdout data
-                    accur = model.score(x_test_SVM, np.ravel(y_test_SVM))
-
-                    # store results for this holdout group and parameter combination
-                    SVM_CVResults['params'].append({'C': c, 'kernel': kernel})
-                    SVM_CVResults['scores'].append(accur)  # append accuracy score metric
-
-                for gamma in GridParams['gamma']:
-                    for degree in GridParams['degrees']:
-
-                        if (kernel != 'linear'):
-                            # transform train and test data using kernel approximation
-                            feature_map_nystroem = Nystroem(gamma=gamma, degree = degree, n_components= KernelTransformationParameters['NComp'])
-                            x_train_SVM_transformed = feature_map_nystroem.fit_transform(x_train_SVM)
-                            x_test_SVM_transformed = feature_map_nystroem.transform(x_test_SVM) # apply same transformation to test data
-
-                            #fit model
-                            # get non-linear SVM model
-                            model = SGDClassifier(loss=SGDParameters['loss'], penalty=SGDParameters['penalty'], alpha=c,
-                                                  fit_intercept=False, verbose=100)
-                            # train model
-                            model.fit(x_train_SVM_transformed, np.ravel(y_train_SVM))
-                            # test on holdout data
-                            accur = model.score(x_test_SVM_transformed, np.ravel(y_test_SVM))
-
-                            # store results for this holdout group and parameter combination
-                            SVM_CVResults['params'].append({'C': c, 'kernel': kernel, 'gamma': gamma, 'degree': degree})
-                            SVM_CVResults['scores'].append(accur)  # append accuracy score metric
-                            SVM_CVResults['transforms'].append(feature_map_nystroem) # append transform matrix to use for final testing set after choosing best parameters
-    #extract params and store as a dataframe to view cross validation results
-    ParamsSVM = np.array(SVM_CVResults['params']).reshape(CVgroups,-1).T
-    ScoresSVM = np.array(SVM_CVResults['scores']).reshape(CVgroups,-1).T
-    TransformsSVM = np.array(SVM_CVResults['transforms'])
-    MeanScore = np.mean(ScoresSVM,1) # get mean cross validation score
-    #convert back to dict and store as dataframe and save to CSV file
-    Results = {'Parameters': ParamsSVM[:,0], 'HO Group 1 Score': ScoresSVM[:,0],'HO Group 2 Score': ScoresSVM[:,1],'HO Group 3 Score': ScoresSVM[:,2], 'Mean CV Score': MeanScore}
-    ResultsDF = pd.DataFrame(Results)
-    CVStatsFileName = data + '_testCVResults_SVM.csv'
-    ResultsDF.to_csv(CVStatsFileName)  # save the test results
-
-    #Find the Best Parameter Set from Data
-    MaxIndex = np.argmax(MeanScore) # get the index
-    #extract the parameters
-    BestParams = ParamsSVM[MaxIndex,0]
-
-    if (BestParams['kernel'] == 'linear'): # if linear, use linear SVM Model, generate confusion matrix, and save results
-        model = SGDClassifier(loss=SGDParameters['loss'], penalty=SGDParameters['penalty'], alpha=BestParams['C'],
-                              fit_intercept=False, verbose=100)
-        SVM_TestDataFinal = TrainFeatureSet[data][1]
-        model.fit(TrainFeatureSet[data][0], np.ravel(y_train)) # fit model on training data with best parameters
-        yPred = model.predict(SVM_TestDataFinal)
-
-         #generate confusion matrix
-        CM = confusion_matrix(y_test, yPred)
-        df_cm = pd.DataFrame(CM, index=[i for i in labels],
-                             columns=[i for i in labels])
-        plt.figure(figsize=(12, 9))
-        sn.heatmap(df_cm, annot=True, fmt="d")
-        plt.xlabel('Predicted Class')
-        plt.ylabel('True Class')
-        CMatrixFileN = data + '_CM_SVM.png'
-        plt.savefig(CMatrixFileN, format='png')  # save as png
-        plt.close('all')
-
-        # generate and save classification report
-        report_dict = classification_report(y_test, yPred, output_dict=True)
-        reportDF = pd.DataFrame(report_dict)
-        CVStatsFileName = data + '_testResults_SVM.csv'
-        reportDF.to_csv(CVStatsFileName)  # save the test results
-    else:
-        #get transformation to apply on testing data
-        TransformExtractIndex = MaxIndex - len(GridParams['C'])
-        ExtractedTransform = TransformsSVM[TransformExtractIndex]
-        #perform same transformation as was on training data
-        SVM_TestDataFinal = TrainFeatureSet[data][1]
-        SVM_TrainData_Transformed = ExtractedTransform.transform(TrainFeatureSet[data][0])
-        SVM_TestDataFinal_Transformed = ExtractedTransform.transform(SVM_TestDataFinal) # apply same transformation to test data
-        model = SGDClassifier(loss=SGDParameters['loss'], penalty=SGDParameters['penalty'], alpha=BestParams['C'],
-                              fit_intercept=False, verbose=100)
-        model.fit(SVM_TrainData_Transformed, np.ravel(y_train)) # fit model on training data with best parameters
-        yPred = model.predict(SVM_TestDataFinal_Transformed)
-
-        # generate confusion matrix
-        CM = confusion_matrix(y_test, yPred)
-        df_cm = pd.DataFrame(CM, index=[i for i in labels],
-                             columns=[i for i in labels])
-        plt.figure(figsize=(12, 9))
-        sn.heatmap(df_cm, annot=True, fmt="d")
-        plt.xlabel('Predicted Class')
-        plt.ylabel('True Class')
-        CMatrixFileN = data + '_CM_SVM.png'
-        plt.savefig(CMatrixFileN, format='png')  # save as png
-        plt.close('all')
-
-        # generate and save classification report
-        report_dict = classification_report(y_test, yPred, output_dict=True)
-        reportDF = pd.DataFrame(report_dict)
-        CVStatsFileName = data + '_testResults_SVM.csv'
-        reportDF.to_csv(CVStatsFileName)  # save the test results
-
-
-
-
-
-
-# define grid search parameters for cross validation
-#SVMModel = SVC()  # get the class model for KNN
 #GridParams = {'C': Cdistance,
 #              'kernel': SVMKernels, 'gamma': Gammas,
-#              'degrees': Degrees}  # dictionary of parameters to test and evaluate (neighbors and distances)
-#SVM_gscv = GridSearchCV(SVMModel, GridParams,
-#                        cv=CVgroups, verbose=100)  # model for performing grid search with different parameters
-#
-## for each feature group defined above
-## create feature set dictionaries
-#TrainFeatureSet = {'x_train_RGBhist': [x_train_RGBhist, x_test_RGBhist],
-#                   'x_train_HSVhist': [x_train_HSVhist, x_test_HSVhist],
-#                   'x_train_Labhist': [x_train_Labhist, x_test_Labhist],
-#                   'xtrain_vec_g': [xtrain_vec_g, xtest_vec_g],
-#                   'xtrain_vec': [xtrain_vec, xtest_vec]}
-#for i in TrainFeatureSet:
-#    # fit model to training data
-#    SVM_gscv.fit(TrainFeatureSet[i][0], np.ravel(y_train))
-#    # get statistics for cross validation
-#    StatDF = pd.DataFrame.from_dict(SVM_gscv.cv_results_)
-#    CVStatsFileName = i + '_trainCVResults_SVM.csv'
-#    StatDF.to_csv(CVStatsFileName)  # save the cross validation statistics
-#
-#    # get prediction of the final test set
-#    BestParams = SVM_gscv.best_params_  # get the best parameters
-#    SVM_model = SVC(C=BestParams['C'], kernel=BestParams['kernel'], gamma=BestParams['gamma'])
-#    SVM_model.fit(TrainFeatureSet[i][0],
-#                  np.ravel(y_train))  # train with the best parameter on the relevant training set
-#    yPred = SVM_model.predict(TrainFeatureSet[i][1])  # test on the test set
-#
-#    # generate confusion matrix
-#    CM = confusion_matrix(y_test, yPred)
-#    df_cm = pd.DataFrame(CM, index=[i for i in labels],
-#                         columns=[i for i in labels])
-#    plt.figure(figsize=(10, 7))
-#    sn.heatmap(df_cm, annot=True, fmt="d")
-#    plt.xlabel('Predicted Class')
-#    plt.ylabel('True Class')
-#    CMatrixFileN = i + '_CM_SVM.png'
-#    plt.savefig(CMatrixFileN, format='png')  # save as png
-#    plt.close('all')
-#
-#    report_dict = classification_report(y_test, yPred, output_dict=True)
-#    reportDF = pd.DataFrame(report_dict)
-#    CVStatsFileName = i + '_testCVResults_SVM.csv'
-#    reportDF.to_csv(CVStatsFileName)  # save the test results
+#              'degrees': Degrees}  # dictionary of parameters to test and evaluate
+#SGDParameters = {'loss': 'hinge', 'penalty': 'l1', 'fit_intercept': False, 'verbose': 1}
+## use hinge loss since implementing SVM (hinge loss = linear, and for kernel method kernel transformation is applied before linear SVM)
+## penalty = l1 for sparse solution
+## alpha = C values defined at the top parameter list (regularizer possible values, to be determined in grid search)
+## fit_intercept = False, data is already centered around 0 mean
+## verbose = 10, display message updates on progress
+
+#KernelTransformationParameters = {'NComp': 100}
+## 100 component approximation of training data kernel transform
+## gamma = gamma values to grid search
+## degree = degree values to grid search
+
+## perform cross validation manually
+#for data in TrainFeatureSet:
+
+#    SVM_CVResults = {'params': [], 'scores': [],'transforms': []}  # initialize empty dictionary to store cross validation results
+
+#    SVM_TrainData = TrainFeatureSet[data][0]  # extract the training data for the relevant feature set
+#    ylabels = np.ravel(y_train)
+#    kf = KFold(n_splits=CVgroups)
+#    Kindices = kf.split(SVM_TrainData)  # get the generator for the indexes of train and test data
+
+#    for train_index, test_index in Kindices:
+#        x_train_SVM, x_test_SVM = SVM_TrainData[train_index, :], SVM_TrainData[test_index,:]  # extract data for this group of holdout and training data
+#        y_train_SVM, y_test_SVM = ylabels[train_index], ylabels[test_index]  # extract the labels for the holdout and training data
+
+#        ## train on training data using different hyperparameters and test on holdout data
+
+#        for kernel in GridParams['kernel']:
+#            for c in GridParams['C']: # calculate linear models here to avoid duplicate metrics for linear due to iterations of nonlinear parameters
+
+#                if (kernel == 'linear'):  # if linear model
+#                    # get linear SVM model
+#                    model = SGDClassifier(loss=SGDParameters['loss'], penalty=SGDParameters['penalty'], alpha=c,
+#                                          fit_intercept=False, verbose=SGDParameters['verbose'])
+#                    # train model
+#                    model.fit(x_train_SVM, np.ravel(y_train_SVM))
+#                    # test on holdout data
+#                    accur = model.score(x_test_SVM, np.ravel(y_test_SVM))
+
+#                    # store results for this holdout group and parameter combination
+#                    SVM_CVResults['params'].append({'C': c, 'kernel': kernel})
+#                    SVM_CVResults['scores'].append(accur)  # append accuracy score metric
+
+#                for gamma in GridParams['gamma']:
+
+#                    #degree parameter only matters for poly kernel
+#                    if (kernel != 'linear' and kernel != 'poly'):
+#                        # transform train and test data using kernel approximation
+#                        feature_map_nystroem = Nystroem(gamma=gamma,
+#                                                        n_components=KernelTransformationParameters['NComp'],
+#                                                        random_state=1)  # random state control so same transformation for repeated fits with same data
+#                        x_train_SVM_transformed = feature_map_nystroem.fit_transform(x_train_SVM)
+#                        x_test_SVM_transformed = feature_map_nystroem.transform(
+#                            x_test_SVM)  # apply same transformation to test data
+
+#                        # fit model
+#                        # get non-linear SVM model
+#                        model = SGDClassifier(loss=SGDParameters['loss'], penalty=SGDParameters['penalty'], alpha=c,
+#                                              fit_intercept=False, verbose=SGDParameters['verbose'])
+#                        # train model
+#                        model.fit(x_train_SVM_transformed, np.ravel(y_train_SVM))
+#                        # test on holdout data
+#                        accur = model.score(x_test_SVM_transformed, np.ravel(y_test_SVM))
+
+#                        # store results for this holdout group and parameter combination
+#                        SVM_CVResults['params'].append({'C': c, 'kernel': kernel, 'gamma': gamma})
+#                        SVM_CVResults['scores'].append(accur)  # append accuracy score metric
+#                        SVM_CVResults['transforms'].append(
+#                            feature_map_nystroem)  # append transform matrix to use for final testing set after choosing best parameters
+#                    for degree in GridParams['degrees']:
+
+#                        if (kernel == 'poly'):
+#                            # transform train and test data using kernel approximation
+#                            feature_map_nystroem = Nystroem(gamma=gamma, degree = degree, n_components= KernelTransformationParameters['NComp'], random_state= 1) # random state control so same transformation for repeated fits with same data
+#                            x_train_SVM_transformed = feature_map_nystroem.fit_transform(x_train_SVM)
+#                            x_test_SVM_transformed = feature_map_nystroem.transform(x_test_SVM) # apply same transformation to test data
+
+#                            #fit model
+#                            # get non-linear SVM model
+#                            model = SGDClassifier(loss=SGDParameters['loss'], penalty=SGDParameters['penalty'], alpha=c,
+#                                                  fit_intercept=False, verbose=SGDParameters['verbose'])
+#                            # train model
+#                            model.fit(x_train_SVM_transformed, np.ravel(y_train_SVM))
+#                            # test on holdout data
+#                            accur = model.score(x_test_SVM_transformed, np.ravel(y_test_SVM))
+
+#                            # store results for this holdout group and parameter combination
+#                            SVM_CVResults['params'].append({'C': c, 'kernel': kernel, 'gamma': gamma, 'degree': degree})
+#                            SVM_CVResults['scores'].append(accur)  # append accuracy score metric
+#                            SVM_CVResults['transforms'].append(feature_map_nystroem) # append transform matrix to use for final testing set after choosing best parameters
+
+
+#    #extract params and store as a dataframe to view cross validation results
+#    ParamsSVM = np.array(SVM_CVResults['params']).reshape(CVgroups,-1).T
+#    ScoresSVM = np.array(SVM_CVResults['scores']).reshape(CVgroups,-1).T
+#    TransformsSVM = np.array(SVM_CVResults['transforms'])
+#    MeanScore = np.mean(ScoresSVM,1) # get mean cross validation score
+#    # extract ranks
+#    RankParams = np.argsort(MeanScore)
+#    RankParams2 = np.copy(RankParams)
+#    Indices = np.linspace(len(RankParams),1, len(RankParams)) #create indices 0 - (N-1) for mapping
+#    RankParams2[RankParams] = Indices
+#    #convert back to dict and store as dataframe and save to CSV file
+#    Results = {'Parameters': ParamsSVM[:,0], 'HO Group 1 Score': ScoresSVM[:,0],'HO Group 2 Score': ScoresSVM[:,1],'HO Group 3 Score': ScoresSVM[:,2], 'Mean CV Score': MeanScore, 'RankScore': RankParams2}
+#    ResultsDF = pd.DataFrame(Results)
+#    CVStatsFileName = data + '_testCVResults_SVM.csv'
+#    ResultsDF.to_csv(CVStatsFileName)  # save the test results
+
+#    #Find the Best Parameter Set from Data
+#    MaxIndex = np.argmax(MeanScore) # get the index
+#    #extract the parameters
+#    BestParams = ParamsSVM[MaxIndex,0]
+
+
+#    if (BestParams['kernel'] == 'linear'): # if linear, use linear SVM Model, generate confusion matrix, and save results
+#        model = SGDClassifier(loss=SGDParameters['loss'], penalty=SGDParameters['penalty'], alpha=BestParams['C'],
+#                              fit_intercept=False, verbose=SGDParameters['verbose'])
+#        SVM_TestDataFinal = TrainFeatureSet[data][1]
+#        model.fit(TrainFeatureSet[data][0], np.ravel(y_train)) # fit model on training data with best parameters
+#        yPred = model.predict(SVM_TestDataFinal)
+
+#         #generate confusion matrix
+#        CM = confusion_matrix(y_test, yPred)
+#        df_cm = pd.DataFrame(CM, index=[i for i in labels],
+#                             columns=[i for i in labels])
+#        plt.figure(figsize=(12, 9))
+#        sn.heatmap(df_cm, annot=True, fmt="d")
+#        plt.xlabel('Predicted Class')
+#        plt.ylabel('True Class')
+#        CMatrixFileN = data + '_CM_SVM.png'
+#        plt.savefig(CMatrixFileN, format='png')  # save as png
+#        plt.close('all')
+
+#        # generate and save classification report
+#        report_dict = classification_report(y_test, yPred, output_dict=True)
+#        reportDF = pd.DataFrame(report_dict)
+#        CVStatsFileName = data + '_testResults_SVM.csv'
+#        reportDF.to_csv(CVStatsFileName)  # save the test results
+#    else:
+#        #get transformation to apply on testing data
+#        TransformExtractIndex = MaxIndex - len(GridParams['C'])
+#        ExtractedTransform = TransformsSVM[TransformExtractIndex]
+#        #perform same transformation as was on training data
+#        SVM_TestDataFinal = TrainFeatureSet[data][1]
+#        SVM_TrainData_Transformed = ExtractedTransform.transform(TrainFeatureSet[data][0])
+#        SVM_TestDataFinal_Transformed = ExtractedTransform.transform(SVM_TestDataFinal) # apply same transformation to test data
+#        model = SGDClassifier(loss=SGDParameters['loss'], penalty=SGDParameters['penalty'], alpha=BestParams['C'],
+#                              fit_intercept=False, verbose=SGDParameters['verbose'])
+#        model.fit(SVM_TrainData_Transformed, np.ravel(y_train)) # fit model on training data with best parameters
+#        yPred = model.predict(SVM_TestDataFinal_Transformed)
+
+#        # generate confusion matrix
+#        CM = confusion_matrix(y_test, yPred)
+#        df_cm = pd.DataFrame(CM, index=[i for i in labels],
+#                             columns=[i for i in labels])
+#        plt.figure(figsize=(12, 9))
+#        sn.heatmap(df_cm, annot=True, fmt="d")
+#        plt.xlabel('Predicted Class')
+#        plt.ylabel('True Class')
+#        CMatrixFileN = data + '_CM_SVM.png'
+#        plt.savefig(CMatrixFileN, format='png')  # save as png
+#        plt.close('all')
+
+#        # generate and save classification report
+#        report_dict = classification_report(y_test, yPred, output_dict=True)
+#        reportDF = pd.DataFrame(report_dict)
+#        CVStatsFileName = data + '_testResults_SVM.csv'
+#        reportDF.to_csv(CVStatsFileName)  # save the test results
+
+
+
+
+
+
