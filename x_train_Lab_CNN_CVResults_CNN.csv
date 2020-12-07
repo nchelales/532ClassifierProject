@@ -1,0 +1,7 @@
+,Parameters,HO Group 1 Score,HO Group 2 Score,HO Group 3 Score,Mean CV Score,RankScore
+0,"{'kernel Size': 3, 'padding': 'same', 'AcFunc': 'relu', 'pool': 'max', 'Batch Size': 500, 'Epoch Size': 25, 'C': 0.0001, 'Num Nodes': (32, 64)}",0.5298494100570679,0.5140097141265869,0.5252609848976135,0.5230400363604227,3
+1,"{'kernel Size': 3, 'padding': 'same', 'AcFunc': 'relu', 'pool': 'max', 'Batch Size': 500, 'Epoch Size': 25, 'C': 0.0001, 'Num Nodes': (64,)}",0.5105897784233093,0.5711885690689087,0.5446417927742004,0.5421400467554728,1
+2,"{'kernel Size': 3, 'padding': 'same', 'AcFunc': 'relu', 'pool': 'max', 'Batch Size': 500, 'Epoch Size': 25, 'C': 0.0001, 'Num Nodes': (32,)}",0.5521089434623718,0.4851503074169159,0.551482081413269,0.5295804440975189,2
+3,"{'kernel Size': 3, 'padding': 'same', 'AcFunc': 'sigmoid', 'pool': 'max', 'Batch Size': 500, 'Epoch Size': 25, 'C': 0.0001, 'Num Nodes': (32, 64)}",0.09473810344934464,0.097678042948246,0.09816392511129379,0.09686002383629481,6
+4,"{'kernel Size': 3, 'padding': 'same', 'AcFunc': 'sigmoid', 'pool': 'max', 'Batch Size': 500, 'Epoch Size': 25, 'C': 0.0001, 'Num Nodes': (64,)}",0.10121797770261765,0.3149336874485016,0.3141125738620758,0.24342141300439835,4
+5,"{'kernel Size': 3, 'padding': 'same', 'AcFunc': 'sigmoid', 'pool': 'max', 'Batch Size': 500, 'Epoch Size': 25, 'C': 0.0001, 'Num Nodes': (32,)}",0.10001800209283829,0.097678042948246,0.09930397570133209,0.0990000069141388,5

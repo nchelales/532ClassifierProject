@@ -22,36 +22,6 @@
     <list default="true" id="b64c6272-a58d-4853-b2d9-8dd8ea81ec14" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mainScript.py" beforeDir="false" afterPath="$PROJECT_DIR$/mainScript.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_HSVhist_CM.png" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_HSVhist_CM.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_HSVhist_CM_SVM.png" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_HSVhist_CM_SVM.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_HSVhist_testCVResults.csv" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_HSVhist_testCVResults.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_HSVhist_testCVResults_SVM.csv" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_HSVhist_testCVResults_SVM.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_HSVhist_testResults_SVM.csv" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_HSVhist_testResults_SVM.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_HSVhist_trainCVResults.csv" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_HSVhist_trainCVResults.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_Labhist_CM.png" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_Labhist_CM.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_Labhist_CM_SVM.png" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_Labhist_CM_SVM.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_Labhist_testCVResults.csv" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_Labhist_testCVResults.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_Labhist_testCVResults_SVM.csv" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_Labhist_testCVResults_SVM.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_Labhist_testResults_SVM.csv" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_Labhist_testResults_SVM.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_Labhist_trainCVResults.csv" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_Labhist_trainCVResults.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_RGBhist_CM.png" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_RGBhist_CM.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_RGBhist_CM_SVM.png" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_RGBhist_CM_SVM.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_RGBhist_testCVResults.csv" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_RGBhist_testCVResults.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_RGBhist_testCVResults_SVM.csv" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_RGBhist_testCVResults_SVM.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_RGBhist_testResults_SVM.csv" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_RGBhist_testResults_SVM.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x_train_RGBhist_trainCVResults.csv" beforeDir="false" afterPath="$PROJECT_DIR$/x_train_RGBhist_trainCVResults.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xtrain_vec_CM.png" beforeDir="false" afterPath="$PROJECT_DIR$/xtrain_vec_CM.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xtrain_vec_CM_SVM.png" beforeDir="false" afterPath="$PROJECT_DIR$/xtrain_vec_CM_SVM.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xtrain_vec_g_CM.png" beforeDir="false" afterPath="$PROJECT_DIR$/xtrain_vec_g_CM.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xtrain_vec_g_CM_SVM.png" beforeDir="false" afterPath="$PROJECT_DIR$/xtrain_vec_g_CM_SVM.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xtrain_vec_g_testCVResults.csv" beforeDir="false" afterPath="$PROJECT_DIR$/xtrain_vec_g_testCVResults.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xtrain_vec_g_testCVResults_SVM.csv" beforeDir="false" afterPath="$PROJECT_DIR$/xtrain_vec_g_testCVResults_SVM.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xtrain_vec_g_testResults_SVM.csv" beforeDir="false" afterPath="$PROJECT_DIR$/xtrain_vec_g_testResults_SVM.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xtrain_vec_g_trainCVResults.csv" beforeDir="false" afterPath="$PROJECT_DIR$/xtrain_vec_g_trainCVResults.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xtrain_vec_testCVResults.csv" beforeDir="false" afterPath="$PROJECT_DIR$/xtrain_vec_testCVResults.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xtrain_vec_testCVResults_SVM.csv" beforeDir="false" afterPath="$PROJECT_DIR$/xtrain_vec_testCVResults_SVM.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xtrain_vec_testResults_SVM.csv" beforeDir="false" afterPath="$PROJECT_DIR$/xtrain_vec_testResults_SVM.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xtrain_vec_trainCVResults.csv" beforeDir="false" afterPath="$PROJECT_DIR$/xtrain_vec_trainCVResults.csv" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -84,6 +54,11 @@
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="PyConsoleOptionsProvider">
+    <option name="myPythonConsoleState">
+      <console-settings>
+        <option name="useSoftWraps" value="true" />
+      </console-settings>
+    </option>
     <option name="myUseExistingConsole" value="true" />
   </component>
   <component name="RunManager">
@@ -161,32 +136,32 @@
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
     <state width="1177" height="466" key="DebuggerActiveHint/0.0.2560.1440@0.0.2560.1440" timestamp="1605640279483" />
-    <state width="2539" height="285" key="GridCell.Tab.0.bottom" timestamp="1606962181776">
+    <state width="2539" height="441" key="GridCell.Tab.0.bottom" timestamp="1607135273102">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
     <state width="2539" height="490" key="GridCell.Tab.0.bottom/0.0.2560.1440/-1792.153.1792.1120@0.0.2560.1440" timestamp="1605647670129" />
-    <state width="2539" height="285" key="GridCell.Tab.0.bottom/0.0.2560.1440@0.0.2560.1440" timestamp="1606962181776" />
+    <state width="2539" height="441" key="GridCell.Tab.0.bottom/0.0.2560.1440@0.0.2560.1440" timestamp="1607135273102" />
     <state width="2539" height="307" key="GridCell.Tab.0.bottom/0.23.2560.1376@0.23.2560.1376" timestamp="1606861877468" />
     <state width="2539" height="490" key="GridCell.Tab.0.bottom/0.23.2560.1378@0.23.2560.1378" timestamp="1605651664068" />
-    <state width="2539" height="285" key="GridCell.Tab.0.center" timestamp="1606962181775">
+    <state width="2539" height="441" key="GridCell.Tab.0.center" timestamp="1607135273101">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
     <state width="2539" height="490" key="GridCell.Tab.0.center/0.0.2560.1440/-1792.153.1792.1120@0.0.2560.1440" timestamp="1605647670128" />
-    <state width="2539" height="285" key="GridCell.Tab.0.center/0.0.2560.1440@0.0.2560.1440" timestamp="1606962181775" />
+    <state width="2539" height="441" key="GridCell.Tab.0.center/0.0.2560.1440@0.0.2560.1440" timestamp="1607135273101" />
     <state width="2539" height="307" key="GridCell.Tab.0.center/0.23.2560.1376@0.23.2560.1376" timestamp="1606861877467" />
     <state width="2539" height="490" key="GridCell.Tab.0.center/0.23.2560.1378@0.23.2560.1378" timestamp="1605651664068" />
-    <state width="2539" height="285" key="GridCell.Tab.0.left" timestamp="1606962181775">
+    <state width="2539" height="441" key="GridCell.Tab.0.left" timestamp="1607135273100">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
     <state width="2539" height="490" key="GridCell.Tab.0.left/0.0.2560.1440/-1792.153.1792.1120@0.0.2560.1440" timestamp="1605647670127" />
-    <state width="2539" height="285" key="GridCell.Tab.0.left/0.0.2560.1440@0.0.2560.1440" timestamp="1606962181775" />
+    <state width="2539" height="441" key="GridCell.Tab.0.left/0.0.2560.1440@0.0.2560.1440" timestamp="1607135273100" />
     <state width="2539" height="307" key="GridCell.Tab.0.left/0.23.2560.1376@0.23.2560.1376" timestamp="1606861877466" />
     <state width="2539" height="490" key="GridCell.Tab.0.left/0.23.2560.1378@0.23.2560.1378" timestamp="1605651664067" />
-    <state width="2539" height="285" key="GridCell.Tab.0.right" timestamp="1606962181776">
+    <state width="2539" height="441" key="GridCell.Tab.0.right" timestamp="1607135273102">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
     <state width="2539" height="490" key="GridCell.Tab.0.right/0.0.2560.1440/-1792.153.1792.1120@0.0.2560.1440" timestamp="1605647670128" />
-    <state width="2539" height="285" key="GridCell.Tab.0.right/0.0.2560.1440@0.0.2560.1440" timestamp="1606962181776" />
+    <state width="2539" height="441" key="GridCell.Tab.0.right/0.0.2560.1440@0.0.2560.1440" timestamp="1607135273102" />
     <state width="2539" height="307" key="GridCell.Tab.0.right/0.23.2560.1376@0.23.2560.1376" timestamp="1606861877467" />
     <state width="2539" height="490" key="GridCell.Tab.0.right/0.23.2560.1378@0.23.2560.1378" timestamp="1605651664068" />
     <state x="605" y="346" key="SettingsEditor" timestamp="1605651420492">
