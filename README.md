@@ -19,8 +19,9 @@ LAB Images
 Grayscale Images
 
 
+File For Results Are Grouped by Algorithm and Feature Set Used to Build Each Model.
 
-File For Results Are Grouped by Algorithm and Feature Set Used to Build Each Model
+There is only one python file, which is divided into three separate sections (KNN, SVM, and CNN). Each section is separate by a long string of " #####" to denote sections. If one section is desired to be run only, comment out the other sections and run so forth. Outputs will automatically be saved in the same file naming convention as are in the GitHub repo (.csv and .png files).
 
 
 
